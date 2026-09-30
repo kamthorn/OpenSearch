@@ -23,6 +23,12 @@ import java.io.IOException;
  */
 public class Lucene90DocValuesProducerWrapper implements Closeable {
 
+    /** Codec name for the sparse-field IndexedDISI file ({@code Lucene90DocValuesFormat#DISI_CODEC}). */
+    public static final String DISI_CODEC = "Lucene90DocValuesDISI";
+
+    /** File extension for the sparse-field IndexedDISI file ({@code Lucene90DocValuesFormat#DISI_EXTENSION}). */
+    public static final String DISI_EXTENSION = "dvp";
+
     private final Lucene90DocValuesProducer lucene90DocValuesProducer;
 
     public Lucene90DocValuesProducerWrapper(
@@ -32,7 +38,9 @@ public class Lucene90DocValuesProducerWrapper implements Closeable {
         String metaCodec,
         String metaExtension,
         String skipIndexCodec,
-        String skipIndexExtension
+        String skipIndexExtension,
+        String disiCodec,
+        String disiExtension
     ) throws IOException {
         lucene90DocValuesProducer = new Lucene90DocValuesProducer(
             state,
@@ -41,7 +49,9 @@ public class Lucene90DocValuesProducerWrapper implements Closeable {
             metaCodec,
             metaExtension,
             skipIndexCodec,
-            skipIndexExtension
+            skipIndexExtension,
+            disiCodec,
+            disiExtension
         );
     }
 

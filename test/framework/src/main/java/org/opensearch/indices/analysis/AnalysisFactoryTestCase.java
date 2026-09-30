@@ -72,7 +72,6 @@ public abstract class AnalysisFactoryTestCase extends OpenSearchTestCase {
         .put("simplepattern", MovedToAnalysisCommon.class)
         .put("simplepatternsplit", MovedToAnalysisCommon.class)
         .put("standard", StandardTokenizerFactory.class)
-        .put("thai", MovedToAnalysisCommon.class)
         .put("uax29urlemail", MovedToAnalysisCommon.class)
         .put("whitespace", MovedToAnalysisCommon.class)
 
@@ -90,6 +89,7 @@ public abstract class AnalysisFactoryTestCase extends OpenSearchTestCase {
         .put("bengalistem", MovedToAnalysisCommon.class)
         .put("brazilianstem", MovedToAnalysisCommon.class)
         .put("bulgarianstem", MovedToAnalysisCommon.class)
+        .put("casefolding", Void.class)
         .put("cjkbigram", MovedToAnalysisCommon.class)
         .put("cjkwidth", MovedToAnalysisCommon.class)
         .put("classic", MovedToAnalysisCommon.class)
