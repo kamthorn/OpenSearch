@@ -72,6 +72,7 @@ public abstract class AnalysisFactoryTestCase extends OpenSearchTestCase {
         .put("simplepattern", MovedToAnalysisCommon.class)
         .put("simplepatternsplit", MovedToAnalysisCommon.class)
         .put("standard", StandardTokenizerFactory.class)
+        .put("thai", MovedToAnalysisCommon.class)
         .put("uax29urlemail", MovedToAnalysisCommon.class)
         .put("whitespace", MovedToAnalysisCommon.class)
 
@@ -163,6 +164,8 @@ public abstract class AnalysisFactoryTestCase extends OpenSearchTestCase {
         .put("synonymgraph", MovedToAnalysisCommon.class)
         .put("telugunormalization", MovedToAnalysisCommon.class)
         .put("telugustem", MovedToAnalysisCommon.class)
+        .put("thainormalization", MovedToAnalysisCommon.class)
+        .put("thairepeat", MovedToAnalysisCommon.class)
         .put("trim", MovedToAnalysisCommon.class)
         .put("truncate", MovedToAnalysisCommon.class)
         .put("turkishlowercase", MovedToAnalysisCommon.class)
@@ -233,6 +236,7 @@ public abstract class AnalysisFactoryTestCase extends OpenSearchTestCase {
         .put("htmlstrip", MovedToAnalysisCommon.class)
         .put("mapping", MovedToAnalysisCommon.class)
         .put("patternreplace", MovedToAnalysisCommon.class)
+        .put("thai", MovedToAnalysisCommon.class)
 
         // TODO: these charfilters are not yet exposed: useful?
         // handling of zwnj for persian

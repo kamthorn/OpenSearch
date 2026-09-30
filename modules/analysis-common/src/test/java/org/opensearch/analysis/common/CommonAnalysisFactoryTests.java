@@ -86,6 +86,8 @@ public class CommonAnalysisFactoryTests extends AnalysisFactoryTestCase {
         filters.put("keywordmarker", KeywordMarkerTokenFilterFactory.class);
         filters.put("porterstem", PorterStemTokenFilterFactory.class);
         filters.put("snowballporter", SnowballTokenFilterFactory.class);
+        filters.put("thainormalization", ThaiNormalizationTokenFilterFactory.class);
+        filters.put("thairepeat", ThaiRepeatTokenFilterFactory.class);
         filters.put("trim", TrimTokenFilterFactory.class);
         filters.put("worddelimiter", WordDelimiterTokenFilterFactory.class);
         filters.put("worddelimitergraph", WordDelimiterGraphTokenFilterFactory.class);
@@ -177,6 +179,7 @@ public class CommonAnalysisFactoryTests extends AnalysisFactoryTestCase {
     protected Map<String, Class<?>> getCharFilters() {
         Map<String, Class<?>> filters = new TreeMap<>(super.getCharFilters());
         filters.put("htmlstrip", HtmlStripCharFilterFactory.class);
+        filters.put("thai", ThaiCharFilterFactory.class);
         filters.put("mapping", MappingCharFilterFactory.class);
         filters.put("patternreplace", PatternReplaceCharFilterFactory.class);
 
@@ -191,6 +194,7 @@ public class CommonAnalysisFactoryTests extends AnalysisFactoryTestCase {
         Map<String, Class<?>> filters = new TreeMap<>(super.getPreConfiguredCharFilters());
         filters.put("html_strip", HTMLStripCharFilterFactory.class);
         filters.put("htmlStrip", HTMLStripCharFilterFactory.class);
+        filters.put("thai_char_filter", ThaiCharFilterFactory.class);
         return filters;
     }
 
@@ -239,6 +243,8 @@ public class CommonAnalysisFactoryTests extends AnalysisFactoryTestCase {
         filters.put("sorani_normalization", null);
         filters.put("stemmer", PorterStemFilterFactory.class);
         filters.put("stop", null);
+        filters.put("thai_normalization", null);
+        filters.put("thai_repeat", null);
         filters.put("trim", null);
         filters.put("truncate", null);
         filters.put("type_as_payload", null);

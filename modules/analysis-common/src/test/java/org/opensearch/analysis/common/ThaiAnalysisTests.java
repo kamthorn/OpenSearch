@@ -9,14 +9,19 @@
 package org.opensearch.analysis.common;
 
 import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.KeywordTokenizer;
+import org.apache.lucene.analysis.th.ThaiTokenizer;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.env.Environment;
 import org.opensearch.index.analysis.AnalysisTestsHelper;
+import org.opensearch.index.analysis.CharFilterFactory;
+import org.opensearch.index.analysis.TokenFilterFactory;
 import org.opensearch.index.analysis.TokenizerFactory;
 import org.opensearch.test.OpenSearchTestCase;
 import org.opensearch.test.OpenSearchTokenStreamTestCase;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -99,5 +104,37 @@ public class ThaiAnalysisTests extends OpenSearchTokenStreamTestCase {
         Tokenizer tokenizer = factory.create();
         tokenizer.setReader(new StringReader("การทดสอบ ภาษาไทย มหาวิทยาลัย"));
         assertTokenStreamContents(tokenizer, new String[] { "การ", "ทดสอบ", "ภาษา", "ไทย", "มหาวิทยาลัย" });
+    }
+
+    public void testCharFilter() throws IOException {
+        CharFilterFactory factory = analysis(
+            Settings.builder().put("index.analysis.char_filter.my_thai.type", "thai_char_filter")
+        ).charFilter.get("my_thai");
+        Reader reader = factory.create(new StringReader("เเมว"));
+        Tokenizer tokenizer = new ThaiTokenizer();
+        tokenizer.setReader(reader);
+        assertTokenStreamContents(tokenizer, new String[] { "แมว" }, new int[] { 0 }, new int[] { 4 }, 4);
+    }
+
+    public void testRepeatFilter() throws IOException {
+        TokenFilterFactory factory = analysis(Settings.builder().put("index.analysis.filter.my_repeat.type", "thai_repeat")).tokenFilter
+            .get("my_repeat");
+        Tokenizer tokenizer = new ThaiTokenizer();
+        tokenizer.setReader(new StringReader("วิ่งเร็วๆ"));
+        assertTokenStreamContents(
+            factory.create(tokenizer),
+            new String[] { "วิ่ง", "เร็ว", "เร็ว" },
+            new int[] { 0, 4, 8 },
+            new int[] { 4, 8, 9 }
+        );
+    }
+
+    public void testNormalizationFilter() throws IOException {
+        TokenFilterFactory factory = analysis(
+            Settings.builder().put("index.analysis.filter.my_norm.type", "thai_normalization")
+        ).tokenFilter.get("my_norm");
+        Tokenizer tokenizer = new KeywordTokenizer();
+        tokenizer.setReader(new StringReader("บ่ัน"));
+        assertTokenStreamContents(factory.create(tokenizer), new String[] { "บั่น" });
     }
 }
