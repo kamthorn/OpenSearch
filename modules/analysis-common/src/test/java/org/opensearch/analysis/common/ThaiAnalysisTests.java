@@ -8,11 +8,18 @@
 
 package org.opensearch.analysis.common;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.KeywordTokenizer;
+import org.apache.lucene.analysis.th.ThaiAnalyzer;
 import org.apache.lucene.analysis.th.ThaiTokenizer;
+import org.apache.lucene.util.BytesRef;
+import org.opensearch.Version;
+import org.opensearch.cluster.metadata.IndexMetadata;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.env.Environment;
+import org.opensearch.index.analysis.Analysis;
 import org.opensearch.index.analysis.AnalysisTestsHelper;
 import org.opensearch.index.analysis.CharFilterFactory;
 import org.opensearch.index.analysis.TokenFilterFactory;
@@ -28,6 +35,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 
 public class ThaiAnalysisTests extends OpenSearchTokenStreamTestCase {
 
@@ -107,9 +116,9 @@ public class ThaiAnalysisTests extends OpenSearchTokenStreamTestCase {
     }
 
     public void testCharFilter() throws IOException {
-        CharFilterFactory factory = analysis(
-            Settings.builder().put("index.analysis.char_filter.my_thai.type", "thai_char_filter")
-        ).charFilter.get("my_thai");
+        CharFilterFactory factory = analysis(Settings.builder().put("index.analysis.char_filter.my_thai.type", "thai")).charFilter.get(
+            "my_thai"
+        );
         Reader reader = factory.create(new StringReader("เเมว"));
         Tokenizer tokenizer = new ThaiTokenizer();
         tokenizer.setReader(reader);
@@ -136,5 +145,77 @@ public class ThaiAnalysisTests extends OpenSearchTokenStreamTestCase {
         Tokenizer tokenizer = new KeywordTokenizer();
         tokenizer.setReader(new StringReader("บ่ัน"));
         assertTokenStreamContents(factory.create(tokenizer), new String[] { "บั่น" });
+    }
+
+    private static final String LEGACY_TEXT = "ผลไม้และการเปิดตัวสินค้า";
+
+    public void testAnalyzer() throws IOException {
+        Analyzer analyzer = analysis(Settings.builder().put("index.analysis.analyzer.my_thai.type", "thai")).indexAnalyzers.get("my_thai")
+            .analyzer();
+        assertThat(analyzer, instanceOf(ThaiAnalyzer.class));
+        assertAnalyzesTo(analyzer, "เเมววิ่งเร็วๆ", new String[] { "แมว", "วิ่ง", "เร็ว", "เร็ว" });
+        // Lucene's curated default stopwords keep content words such as เปิด
+        assertAnalyzesTo(analyzer, LEGACY_TEXT, new String[] { "ผลไม้", "เปิด", "ตัว", "สินค้า" });
+        assertEquals(new BytesRef("แมว"), analyzer.normalize("field", "เเมว"));
+    }
+
+    public void testPreBuiltAnalyzer() throws IOException {
+        Analyzer analyzer = analysis(Settings.builder()).indexAnalyzers.get("thai").analyzer();
+        assertThat(analyzer, instanceOf(ThaiAnalyzer.class));
+        assertAnalyzesTo(analyzer, "เเมววิ่งเร็วๆ", new String[] { "แมว", "วิ่ง", "เร็ว", "เร็ว" });
+    }
+
+    public void testAnalyzerStopwords() throws IOException {
+        Analyzer analyzer = analysis(
+            Settings.builder()
+                .put("index.analysis.analyzer.my_thai.type", "thai")
+                .putList("index.analysis.analyzer.my_thai.stopwords", "แมว")
+        ).indexAnalyzers.get("my_thai").analyzer();
+        assertAnalyzesTo(analyzer, "เเมววิ่ง", new String[] { "วิ่ง" });
+    }
+
+    /** Indices created before Lucene 10.6 must produce the same terms as before, so that they do not need a reindex. */
+    public void testAnalyzerOnOlderIndex() throws IOException {
+        OpenSearchTestCase.TestAnalysis analysis = analysis(
+            Settings.builder()
+                .put(IndexMetadata.SETTING_VERSION_CREATED, Version.V_3_9_0)
+                .put("index.analysis.analyzer.my_thai.type", "thai")
+        );
+        for (Analyzer analyzer : List.of(
+            analysis.indexAnalyzers.get("my_thai").analyzer(),
+            analysis.indexAnalyzers.get("thai").analyzer()
+        )) {
+            assertThat(analyzer, instanceOf(LegacyThaiAnalyzer.class));
+            // no char filter, normalization or repeat expansion
+            assertAnalyzesTo(analyzer, "เเมวนอนหลับ", new String[] { "เเมวน", "อ", "น", "หลับ" });
+            assertAnalyzesTo(analyzer, "สวัสดีๆ", new String[] { "สวัสดี", "ๆ" });
+            // the previous default stopword list removes เปิด
+            assertAnalyzesTo(analyzer, LEGACY_TEXT, new String[] { "ผลไม้", "ตัว", "สินค้า" });
+        }
+    }
+
+    public void testNamedStopWordsAreFrozen() {
+        // _thai_ keeps resolving to the list shipped with Lucene up to 10.5, whatever the Lucene version is
+        CharArraySet thai = (CharArraySet) Analysis.NAMED_STOP_WORDS.get("_thai_");
+        assertThat(thai.size(), equalTo(115));
+        assertTrue(thai.contains("เปิด"));
+        assertTrue(thai.contains("ผล"));
+        assertFalse(thai.contains("สำหรับ"));
+    }
+
+    public void testLegacyTokenizerSafeEnd() {
+        LegacyThaiTokenizer tokenizer = new LegacyThaiTokenizer();
+        assertTrue(tokenizer.isSafeEnd('\n'));
+        assertTrue(tokenizer.isSafeEnd('\u2029'));
+        assertFalse(tokenizer.isSafeEnd(' '));
+    }
+
+    public void testTokenizerOnOlderIndex() throws IOException {
+        TokenizerFactory factory = analysis(
+            Settings.builder()
+                .put(IndexMetadata.SETTING_VERSION_CREATED, Version.V_3_9_0)
+                .put("index.analysis.tokenizer.my_thai.type", "thai")
+        ).tokenizer.get("my_thai");
+        assertThat(factory.create(), instanceOf(LegacyThaiTokenizer.class));
     }
 }

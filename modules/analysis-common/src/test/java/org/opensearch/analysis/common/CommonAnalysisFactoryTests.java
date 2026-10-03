@@ -194,7 +194,7 @@ public class CommonAnalysisFactoryTests extends AnalysisFactoryTestCase {
         Map<String, Class<?>> filters = new TreeMap<>(super.getPreConfiguredCharFilters());
         filters.put("html_strip", HTMLStripCharFilterFactory.class);
         filters.put("htmlStrip", HTMLStripCharFilterFactory.class);
-        filters.put("thai_char_filter", ThaiCharFilterFactory.class);
+        filters.put("thai", ThaiCharFilterFactory.class);
         return filters;
     }
 

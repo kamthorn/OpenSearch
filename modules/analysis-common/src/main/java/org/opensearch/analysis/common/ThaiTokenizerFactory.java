@@ -35,6 +35,7 @@ package org.opensearch.analysis.common;
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.th.ThaiTokenizer;
+import org.opensearch.Version;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.env.Environment;
 import org.opensearch.index.IndexSettings;
@@ -53,7 +54,8 @@ import java.util.List;
  *
  * <p>The internal segmentation buffer can be tuned with {@code buffer_size}. Thai text is written
  * without spaces between words and frequently exceeds the default 1024 character buffer, which can
- * split a word across the buffer boundary.
+ * split a word across the buffer boundary. Indices created before {@link Version#V_3_10_0} keep the buffer cut points of
+ * Lucene 10.5 (see {@link LegacyThaiTokenizer}).
  */
 public class ThaiTokenizerFactory extends AbstractTokenizerFactory {
 
@@ -63,11 +65,13 @@ public class ThaiTokenizerFactory extends AbstractTokenizerFactory {
 
     private final CharArraySet userDictionary;
     private final int bufferSize;
+    private final Version indexCreatedVersion;
 
     ThaiTokenizerFactory(IndexSettings indexSettings, Environment env, String name, Settings settings) {
         super(indexSettings, settings, name);
         this.userDictionary = getUserDictionary(env, settings);
         this.bufferSize = settings.getAsInt(BUFFER_SIZE_OPTION, ThaiTokenizer.DEFAULT_BUFFER_SIZE);
+        this.indexCreatedVersion = indexSettings.getIndexVersionCreated();
     }
 
     /**
@@ -91,6 +95,10 @@ public class ThaiTokenizerFactory extends AbstractTokenizerFactory {
 
     @Override
     public Tokenizer create() {
-        return new ThaiTokenizer(userDictionary, bufferSize);
+        if (ThaiAnalyzerProvider.usesLucene106Thai(indexCreatedVersion)) {
+            return new ThaiTokenizer(userDictionary, bufferSize);
+        }
+        // Indices created before Lucene 10.6 keep its previous buffer cut points (see LegacyThaiTokenizer).
+        return new LegacyThaiTokenizer(userDictionary, bufferSize);
     }
 }

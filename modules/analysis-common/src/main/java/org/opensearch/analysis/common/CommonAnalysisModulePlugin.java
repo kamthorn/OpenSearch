@@ -119,7 +119,6 @@ import org.apache.lucene.analysis.shingle.ShingleFilter;
 import org.apache.lucene.analysis.snowball.SnowballFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.sv.SwedishAnalyzer;
-import org.apache.lucene.analysis.th.ThaiAnalyzer;
 import org.apache.lucene.analysis.th.ThaiCharFilter;
 import org.apache.lucene.analysis.th.ThaiNormalizationFilter;
 import org.apache.lucene.analysis.th.ThaiRepeatFilter;
@@ -375,7 +374,7 @@ public class CommonAnalysisModulePlugin extends Plugin implements AnalysisPlugin
     public Map<String, AnalysisProvider<CharFilterFactory>> getCharFilters() {
         Map<String, AnalysisProvider<CharFilterFactory>> filters = new TreeMap<>();
         filters.put("html_strip", HtmlStripCharFilterFactory::new);
-        filters.put("thai_char_filter", ThaiCharFilterFactory::new);
+        filters.put("thai", ThaiCharFilterFactory::new);
         filters.put("pattern_replace", requiresAnalysisSettings(PatternReplaceCharFilterFactory::new));
         filters.put("mapping", requiresAnalysisSettings(MappingCharFilterFactory::new));
         return filters;
@@ -504,7 +503,12 @@ public class CommonAnalysisModulePlugin extends Plugin implements AnalysisPlugin
         analyzers.add(new PreBuiltAnalyzerProviderFactory("spanish", CachingStrategy.LUCENE, SpanishAnalyzer::new));
         analyzers.add(new PreBuiltAnalyzerProviderFactory("swedish", CachingStrategy.LUCENE, SwedishAnalyzer::new));
         analyzers.add(new PreBuiltAnalyzerProviderFactory("turkish", CachingStrategy.LUCENE, TurkishAnalyzer::new));
-        analyzers.add(new PreBuiltAnalyzerProviderFactory("thai", CachingStrategy.LUCENE, ThaiAnalyzer::new));
+        analyzers.add(
+            PreBuiltAnalyzerProviderFactory.openSearchVersion(
+                "thai",
+                version -> ThaiAnalyzerProvider.create(version, ThaiAnalyzerProvider.defaultStopWords(version))
+            )
+        );
         return analyzers;
     }
 
@@ -512,7 +516,7 @@ public class CommonAnalysisModulePlugin extends Plugin implements AnalysisPlugin
     public List<PreConfiguredCharFilter> getPreConfiguredCharFilters() {
         List<PreConfiguredCharFilter> filters = new ArrayList<>();
         filters.add(PreConfiguredCharFilter.singleton("html_strip", false, HTMLStripCharFilter::new));
-        filters.add(PreConfiguredCharFilter.singleton("thai_char_filter", false, ThaiCharFilter::new));
+        filters.add(PreConfiguredCharFilter.singleton("thai", false, ThaiCharFilter::new));
         return filters;
     }
 
@@ -671,7 +675,12 @@ public class CommonAnalysisModulePlugin extends Plugin implements AnalysisPlugin
             )
         );
         tokenizers.add(PreConfiguredTokenizer.singleton("pattern", () -> new PatternTokenizer(Regex.compile("\\W+", null), -1)));
-        tokenizers.add(PreConfiguredTokenizer.singleton("thai", ThaiTokenizer::new));
+        tokenizers.add(
+            PreConfiguredTokenizer.openSearchVersion(
+                "thai",
+                version -> ThaiAnalyzerProvider.usesLucene106Thai(version) ? new ThaiTokenizer() : new LegacyThaiTokenizer()
+            )
+        );
         // TODO deprecate and remove in API
         // This is already broken with normalization, so backwards compat isn't necessary?
         tokenizers.add(PreConfiguredTokenizer.singleton("lowercase", XLowerCaseTokenizer::new));
