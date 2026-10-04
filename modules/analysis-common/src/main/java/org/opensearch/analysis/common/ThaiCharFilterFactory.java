@@ -13,6 +13,7 @@ import org.opensearch.common.settings.Settings;
 import org.opensearch.env.Environment;
 import org.opensearch.index.IndexSettings;
 import org.opensearch.index.analysis.AbstractCharFilterFactory;
+import org.opensearch.index.analysis.NormalizingCharFilterFactory;
 
 import java.io.Reader;
 
@@ -23,7 +24,7 @@ import java.io.Reader;
  * the various representations of the same letter (for example {@code ำ} written as {@code ํ} +
  * {@code า}) so that otherwise identical words are indexed and matched consistently.
  */
-public class ThaiCharFilterFactory extends AbstractCharFilterFactory {
+public class ThaiCharFilterFactory extends AbstractCharFilterFactory implements NormalizingCharFilterFactory {
 
     ThaiCharFilterFactory(IndexSettings indexSettings, Environment env, String name, Settings settings) {
         super(indexSettings, name);
