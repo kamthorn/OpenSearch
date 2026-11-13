@@ -8,6 +8,7 @@
 
 package org.opensearch.analysis.common;
 
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.th.ThaiTokenizer;
 
 /**
@@ -20,6 +21,10 @@ final class LegacyThaiTokenizer extends ThaiTokenizer {
 
     LegacyThaiTokenizer() {
         super();
+    }
+
+    LegacyThaiTokenizer(CharArraySet userDictionary, int bufferSize) {
+        super(userDictionary, bufferSize);
     }
 
     @Override
