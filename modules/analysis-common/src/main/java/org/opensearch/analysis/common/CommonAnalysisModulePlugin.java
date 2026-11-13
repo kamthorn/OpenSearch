@@ -119,6 +119,9 @@ import org.apache.lucene.analysis.shingle.ShingleFilter;
 import org.apache.lucene.analysis.snowball.SnowballFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.sv.SwedishAnalyzer;
+import org.apache.lucene.analysis.th.ThaiCharFilter;
+import org.apache.lucene.analysis.th.ThaiNormalizationFilter;
+import org.apache.lucene.analysis.th.ThaiRepeatFilter;
 import org.apache.lucene.analysis.th.ThaiTokenizer;
 import org.apache.lucene.analysis.tr.ApostropheFilter;
 import org.apache.lucene.analysis.tr.TurkishAnalyzer;
@@ -250,6 +253,8 @@ public class CommonAnalysisModulePlugin extends Plugin implements AnalysisPlugin
     public Map<String, AnalysisProvider<TokenFilterFactory>> getTokenFilters(AnalysisModule analysisModule) {
         Map<String, AnalysisProvider<TokenFilterFactory>> filters = new TreeMap<>();
         filters.put("apostrophe", ApostropheFilterFactory::new);
+        filters.put("thai_normalization", ThaiNormalizationTokenFilterFactory::new);
+        filters.put("thai_repeat", ThaiRepeatTokenFilterFactory::new);
         filters.put("arabic_normalization", ArabicNormalizationFilterFactory::new);
         filters.put("arabic_stem", ArabicStemTokenFilterFactory::new);
         filters.put("asciifolding", ASCIIFoldingTokenFilterFactory::new);
@@ -369,6 +374,7 @@ public class CommonAnalysisModulePlugin extends Plugin implements AnalysisPlugin
     public Map<String, AnalysisProvider<CharFilterFactory>> getCharFilters() {
         Map<String, AnalysisProvider<CharFilterFactory>> filters = new TreeMap<>();
         filters.put("html_strip", HtmlStripCharFilterFactory::new);
+        filters.put("thai", ThaiCharFilterFactory::new);
         filters.put("pattern_replace", requiresAnalysisSettings(PatternReplaceCharFilterFactory::new));
         filters.put("mapping", requiresAnalysisSettings(MappingCharFilterFactory::new));
         return filters;
@@ -510,6 +516,7 @@ public class CommonAnalysisModulePlugin extends Plugin implements AnalysisPlugin
     public List<PreConfiguredCharFilter> getPreConfiguredCharFilters() {
         List<PreConfiguredCharFilter> filters = new ArrayList<>();
         filters.add(PreConfiguredCharFilter.singleton("html_strip", false, HTMLStripCharFilter::new));
+        filters.add(PreConfiguredCharFilter.singleton("thai", false, ThaiCharFilter::new));
         return filters;
     }
 
@@ -611,6 +618,8 @@ public class CommonAnalysisModulePlugin extends Plugin implements AnalysisPlugin
         filters.add(
             PreConfiguredTokenFilter.singleton("stop", false, input -> new StopFilter(input, EnglishAnalyzer.ENGLISH_STOP_WORDS_SET))
         );
+        filters.add(PreConfiguredTokenFilter.singleton("thai_normalization", true, ThaiNormalizationFilter::new));
+        filters.add(PreConfiguredTokenFilter.singleton("thai_repeat", false, ThaiRepeatFilter::new));
         filters.add(PreConfiguredTokenFilter.singleton("trim", true, TrimFilter::new));
         filters.add(PreConfiguredTokenFilter.singleton("truncate", false, input -> new TruncateTokenFilter(input, 10)));
         filters.add(PreConfiguredTokenFilter.singleton("type_as_payload", false, TypeAsPayloadTokenFilter::new));

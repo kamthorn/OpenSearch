@@ -14,6 +14,42 @@
     - match:  { tokens.0.token: "\ntest<yyy>foo</yyy>\n" }
 
 ---
+"thai":
+    - do:
+        indices.analyze:
+          body:
+            text: เเมว
+            tokenizer: keyword
+            char_filter:
+              - type: thai
+    - length: { tokens: 1 }
+    - match:  { tokens.0.token: "แมว" }
+
+    # The Thai tokenizer can only find the word boundaries after the text has been normalized
+    - do:
+        indices.analyze:
+          body:
+            text: ฉันรักเเมวมาก
+            tokenizer: thai
+            char_filter:
+              - type: thai
+    - length: { tokens: 4 }
+    - match:  { tokens.0.token: "ฉัน" }
+    - match:  { tokens.1.token: "รัก" }
+    - match:  { tokens.2.token: "แมว" }
+    - match:  { tokens.3.token: "มาก" }
+
+    # Pre-configured char filter too:
+    - do:
+        indices.analyze:
+          body:
+            text: เเมว
+            tokenizer: keyword
+            char_filter: [thai]
+    - length: { tokens: 1 }
+    - match:  { tokens.0.token: "แมว" }
+
+---
 "pattern_replace":
     - do:
         indices.analyze:

@@ -163,6 +163,8 @@ public abstract class AnalysisFactoryTestCase extends OpenSearchTestCase {
         .put("synonymgraph", MovedToAnalysisCommon.class)
         .put("telugunormalization", MovedToAnalysisCommon.class)
         .put("telugustem", MovedToAnalysisCommon.class)
+        .put("thainormalization", MovedToAnalysisCommon.class)
+        .put("thairepeat", MovedToAnalysisCommon.class)
         .put("trim", MovedToAnalysisCommon.class)
         .put("truncate", MovedToAnalysisCommon.class)
         .put("turkishlowercase", MovedToAnalysisCommon.class)
@@ -228,10 +230,6 @@ public abstract class AnalysisFactoryTestCase extends OpenSearchTestCase {
         .put("romaniannormalization", Void.class)
         // https://github.com/apache/lucene/pull/16371
         .put("casefolding", Void.class)
-        // https://github.com/apache/lucene/pull/16717
-        .put("thainormalization", Void.class)
-        // https://github.com/apache/lucene/pull/16720
-        .put("thairepeat", Void.class)
         .immutableMap();
 
     static final Map<String, Class<?>> KNOWN_CHARFILTERS = new MapBuilder<String, Class<?>>()
@@ -239,13 +237,12 @@ public abstract class AnalysisFactoryTestCase extends OpenSearchTestCase {
         .put("htmlstrip", MovedToAnalysisCommon.class)
         .put("mapping", MovedToAnalysisCommon.class)
         .put("patternreplace", MovedToAnalysisCommon.class)
+        .put("thai", MovedToAnalysisCommon.class)
 
         // TODO: these charfilters are not yet exposed: useful?
         // handling of zwnj for persian
         .put("persian", Void.class)
         .put("cjkwidth", Void.class)
-        // https://github.com/apache/lucene/pull/16717
-        .put("thai", Void.class)
         .immutableMap();
 
     /**
